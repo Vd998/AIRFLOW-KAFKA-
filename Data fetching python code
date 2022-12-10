@@ -1,0 +1,44 @@
+"""
+EMPLOYEE DATA READER
+"""
+from datetime import datetime
+from kafka import KafkaConsumer
+import mysql.connector
+
+TOPIC='emp'
+DATABASE = 'Office'
+USERNAME = 'root'
+PASSWORD = 'yourpassword'
+
+print("Connecting to the database")
+try:
+    connection = mysql.connector.connect(host='localhost', database='Office', user=USERNAME, password=PASSWORD)
+except Exception:
+    print("Could not connect to database. Please check credentials")
+else:
+    print("Connected to database")
+cursor = connection.cursor()
+
+print("Connecting to Kafka")
+consumer = KafkaConsumer(TOPIC)
+print("Connected to Kafka")
+print(f"Reading messages from the topic {TOPIC}")
+for msg in consumer:
+
+    # Extract information from kafka
+
+    message = msg.value.decode("utf-8")
+
+    # Transform the date format to suit the database schema
+    (timestamp, emp_id, emp_name, recp_area) = message.split(",")
+
+    dateobj = datetime.strptime(timestamp, '%a %b %d %H:%M:%S %Y')
+    timestamp = dateobj.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Loading data into the database table
+
+    sql = "insert into emp_det values(%s,%s,%s,%s)"
+    result = cursor.execute(sql, (timestamp, emp_id, emp_name, recp_area))
+    print(f"data of{emp_name} was inserted into the {DATABASE}")
+    connection.commit()
+connection.close()
