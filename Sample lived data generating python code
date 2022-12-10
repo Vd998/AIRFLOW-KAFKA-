@@ -1,0 +1,25 @@
+"""
+EMPLOYEE DATA GENERATOR
+"""
+from time import sleep, time, ctime
+from random import random, randint, choice, sample
+from kafka import KafkaProducer
+producer = KafkaProducer(bootstrap_servers='localhost:9092')
+
+TOPIC = 'emp'
+
+EMP_NAMES = ("Dhairya vasavada", "Gaurav parikh", "Aman pandya", "Hirva pancholi", "Abhishek mehta", "Security-1", "Security-1", "Security-1", "Security-2",
+             "Security-2", "Security-3", "Raj patel", "Abhinav shah", "Rutvik shah", "Gajodhar patel", "Kishan lakani", "Rajeev hathi", "Kiran majmudar")
+for _ in range(100000):
+    emp_id = randint(10000, 10000000)
+    emp_name =sample(EMP_NAMES,1)
+    # emp_name =choice(EMP_NAMES)
+    now = ctime(time())
+    recp_area1="Front" , "Back" , "Courtyard side" , "Parking"
+    recp_area = sample(recp_area1,1)
+    # recp_area = choice(recp_area1)
+    message = f"{now},{emp_id},{emp_name},{recp_area}"
+    message = bytearray(message.encode("utf-8"))
+    print(f"{emp_name} has entered the reception area {recp_area} at {now}.")
+    producer.send(TOPIC, message)
+    sleep(random() * 10) 
